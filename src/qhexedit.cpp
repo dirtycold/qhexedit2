@@ -35,9 +35,10 @@ QHexEdit::QHexEdit(QWidget *parent) : QAbstractScrollArea(parent)
     setAddressAreaColor(this->palette().alternateBase().color());
     setHighlightingColor(QColor(0xff, 0xff, 0x99, 0xff));
     setSelectionColor(this->palette().highlight().color());
-    setAddressFontColor(QPalette::WindowText);
+    setAddressFontColor(this->palette().windowText().color());
     setAsciiAreaColor(this->palette().alternateBase().color());
-    setAsciiFontColor(QPalette::WindowText);
+    setAsciiFontColor(this->palette().windowText().color());
+    setHexFontColor(this->palette().text().color());
 
     connect(&_cursorTimer, SIGNAL(timeout()), this, SLOT(updateCursor()));
     connect(verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(adjust()));
