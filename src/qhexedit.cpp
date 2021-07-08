@@ -999,11 +999,14 @@ void QHexEdit::paintEvent(QPaintEvent *event)
             {
                 // every 2 hex there is 1 ascii
                 int asciiPositionInShowData = hexPositionInShowData / 2;
-                int ch = (uchar)_dataShown.at(asciiPositionInShowData);
-                if (ch < ' ' || ch > '~')
-                    ch = '.';
+                if(asciiPositionInShowData < _dataShown.size())
+                {
+                    int ch = (uchar)_dataShown.at(asciiPositionInShowData);
+                    if (ch < ' ' || ch > '~')
+                        ch = '.';
 
-                painter.drawText(_pxCursorX - pxOfsX, _pxCursorY, QChar(ch));
+                    painter.drawText(_pxCursorX - pxOfsX, _pxCursorY, QChar(ch));
+                }
             }
             else
             {
