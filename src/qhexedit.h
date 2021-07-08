@@ -311,6 +311,7 @@ public slots:
      If overwrite mode, deleted bytes will be replaced with 0.
      */
     void del();
+
     /*!
      * Select all data.
      */
