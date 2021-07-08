@@ -288,6 +288,34 @@ public slots:
       */
     void undo();
 
+    /*! Cut current selection to clipboard. If no data is selected,
+      nothing happens.
+      If overwrite mode, cut data will be replaced with 0.
+      */
+    void cut();
+
+    /*! Copy current selection to clipboard. If no data is selected,
+      nothing happens.
+      */
+    void copy();
+
+    /*! Paste data from clipboard to current cursor postion.
+      If overwrite mode, data following current cursor will be replaced
+      by clipboard data.
+      */
+    void paste();
+
+    /*!
+     * Delete current selected data. If no data is selected, it will delete one
+     byte from current cursor position.
+     If overwrite mode, deleted bytes will be replaced with 0.
+     */
+    void del();
+    /*!
+     * Select all data.
+     */
+    void selectAll();
+
 signals:
 
     /*! Contains the address, where the cursor is located. */

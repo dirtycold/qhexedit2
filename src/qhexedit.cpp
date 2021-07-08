@@ -509,6 +509,93 @@ void QHexEdit::undo()
     refresh();
 }
 
+void QHexEdit::cut()
+{
+    if(getSelectionBegin() != getSelectionEnd())
+    {
+        QByteArray ba = _chunks->data(getSelectionBegin(), getSelectionEnd() - getSelectionBegin()).toHex();
+        for (qint64 idx = 32; idx < ba.size(); idx +=33)
+            ba.insert(idx, "\n");
+        QClipboard *clipboard = QApplication::clipboard();
+        clipboard->setText(ba);
+        if (_overwriteMode)
+        {
+            qint64 len = getSelectionEnd() - getSelectionBegin();
+            replace(getSelectionBegin(), (int)len, QByteArray((int)len, char(0)));
+        }
+        else
+        {
+            remove(getSelectionBegin(), getSelectionEnd() - getSelectionBegin());
+        }
+        setCursorPosition(2 * getSelectionBegin());
+        resetSelection(2 * getSelectionBegin());
+    }
+    refresh();
+}
+
+void QHexEdit::copy()
+{
+    if(getSelectionBegin() != getSelectionEnd())
+    {
+        QByteArray ba = _chunks->data(getSelectionBegin(), getSelectionEnd() - getSelectionBegin()).toHex();
+        for (qint64 idx = 32; idx < ba.size(); idx +=33)
+            ba.insert(idx, "\n");
+        QClipboard *clipboard = QApplication::clipboard();
+        clipboard->setText(ba);
+    }
+    refresh();
+}
+
+void QHexEdit::paste()
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    QByteArray ba = QByteArray().fromHex(clipboard->text().toLatin1());
+    if (_overwriteMode)
+    {
+        ba = ba.left(std::min<qint64>(ba.size(), (_chunks->size() - _bPosCurrent)));
+        replace(_bPosCurrent, ba.size(), ba);
+    }
+    else
+        insert(_bPosCurrent, ba);
+    setCursorPosition(_cursorPosition + 2 * ba.size());
+    resetSelection(getSelectionBegin());
+    refresh();
+}
+
+void QHexEdit::del()
+{
+    if (getSelectionBegin() != getSelectionEnd())
+    {
+        _bPosCurrent = getSelectionBegin();
+        if (_overwriteMode)
+        {
+            QByteArray ba = QByteArray(getSelectionEnd() - getSelectionBegin(), char(0));
+            replace(_bPosCurrent, ba.size(), ba);
+        }
+        else
+        {
+            remove(_bPosCurrent, getSelectionEnd() - getSelectionBegin());
+        }
+    }
+    else
+    {
+        if (_overwriteMode)
+            replace(_bPosCurrent, char(0));
+        else
+            remove(_bPosCurrent, 1);
+    }
+    setCursorPosition(2 * _bPosCurrent);
+    resetSelection(2 * _bPosCurrent);
+    refresh();
+}
+
+void QHexEdit::selectAll()
+{
+    resetSelection(0);
+    setSelection(2 * _chunks->size() + 1);
+    refresh();
+}
+
 // ********************************************************************** Handle events
 void QHexEdit::keyPressEvent(QKeyEvent *event)
 {
@@ -575,8 +662,7 @@ void QHexEdit::keyPressEvent(QKeyEvent *event)
     // Select commands
     if (event->matches(QKeySequence::SelectAll))
     {
-        resetSelection(0);
-        setSelection(2 * _chunks->size() + 1);
+        selectAll();
     }
     if (event->matches(QKeySequence::SelectNextChar))
     {
@@ -649,65 +735,19 @@ void QHexEdit::keyPressEvent(QKeyEvent *event)
         /* Cut */
         if (event->matches(QKeySequence::Cut))
         {
-            QByteArray ba = _chunks->data(getSelectionBegin(), getSelectionEnd() - getSelectionBegin()).toHex();
-            for (qint64 idx = 32; idx < ba.size(); idx +=33)
-                ba.insert(idx, "\n");
-            QClipboard *clipboard = QApplication::clipboard();
-            clipboard->setText(ba);
-            if (_overwriteMode)
-            {
-                qint64 len = getSelectionEnd() - getSelectionBegin();
-                replace(getSelectionBegin(), (int)len, QByteArray((int)len, char(0)));
-            }
-            else
-            {
-                remove(getSelectionBegin(), getSelectionEnd() - getSelectionBegin());
-            }
-            setCursorPosition(2 * getSelectionBegin());
-            resetSelection(2 * getSelectionBegin());
+            cut();
         } else
 
         /* Paste */
         if (event->matches(QKeySequence::Paste))
         {
-            QClipboard *clipboard = QApplication::clipboard();
-            QByteArray ba = QByteArray().fromHex(clipboard->text().toLatin1());
-            if (_overwriteMode)
-            {
-                ba = ba.left(std::min<qint64>(ba.size(), (_chunks->size() - _bPosCurrent)));
-                replace(_bPosCurrent, ba.size(), ba);
-            }
-            else
-                insert(_bPosCurrent, ba);
-            setCursorPosition(_cursorPosition + 2 * ba.size());
-            resetSelection(getSelectionBegin());
+            paste();
         } else
 
         /* Delete char */
         if (event->matches(QKeySequence::Delete))
         {
-            if (getSelectionBegin() != getSelectionEnd())
-            {
-                _bPosCurrent = getSelectionBegin();
-                if (_overwriteMode)
-                {
-                    QByteArray ba = QByteArray(getSelectionEnd() - getSelectionBegin(), char(0));
-                    replace(_bPosCurrent, ba.size(), ba);
-                }
-                else
-                {
-                    remove(_bPosCurrent, getSelectionEnd() - getSelectionBegin());
-                }
-            }
-            else
-            {
-                if (_overwriteMode)
-                    replace(_bPosCurrent, char(0));
-                else
-                    remove(_bPosCurrent, 1);
-            }
-            setCursorPosition(2 * _bPosCurrent);
-            resetSelection(2 * _bPosCurrent);
+            del();
         } else
 
         /* Backspace */
@@ -827,11 +867,7 @@ void QHexEdit::keyPressEvent(QKeyEvent *event)
     /* Copy */
     if (event->matches(QKeySequence::Copy))
     {
-        QByteArray ba = _chunks->data(getSelectionBegin(), getSelectionEnd() - getSelectionBegin()).toHex();
-        for (qint64 idx = 32; idx < ba.size(); idx +=33)
-            ba.insert(idx, "\n");
-        QClipboard *clipboard = QApplication::clipboard();
-        clipboard->setText(ba);
+        copy();
     }
 
     // Switch between insert/overwrite mode
