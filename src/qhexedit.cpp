@@ -982,7 +982,7 @@ void QHexEdit::paintEvent(QPaintEvent *event)
     int hexPositionInShowData = _cursorPosition - 2 * _bPosFirst;
 
     // due to scrolling the cursor can go out of the currently displayed data
-    if ((hexPositionInShowData >= 0) && (hexPositionInShowData < _hexDataShown.size()))
+    if ((hexPositionInShowData >= 0) && (hexPositionInShowData <= _hexDataShown.size()))
     {
         // paint cursor
         if (_readOnly)
